@@ -67,7 +67,7 @@ ${isLastQuestion ? 'This is the final question. Make it count - ask about any im
 Generate the next question:`;
 
     const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash-lite',
     });
 
     const result = await model.generateContent(prompt);
