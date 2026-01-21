@@ -18,6 +18,13 @@ import {
 import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import {
+  ScrollReveal,
+  HowItWorksSection,
+  PlatformExportPreview,
+  ShowcaseGrid,
+  FloatingLogos,
+} from '@/components/landing';
 
 const valueProps = [
   {
@@ -25,31 +32,32 @@ const valueProps = [
     title: 'Lightning Fast',
     description: 'Generate professional logos in seconds, not hours. AI does the heavy lifting.',
     gradient: 'linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)',
+    glowColor: 'rgba(245, 158, 11, 0.3)',
   },
   {
     icon: AutoAwesomeIcon,
     title: 'Completely Free',
     description: 'No watermarks, no subscriptions. Full resolution exports at no cost.',
     gradient: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+    glowColor: 'rgba(99, 102, 241, 0.3)',
   },
   {
     icon: VerifiedIcon,
     title: 'App Store Ready',
     description: 'Export complete icon bundles for iOS, Android, and Web in one click.',
     gradient: 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)',
+    glowColor: 'rgba(34, 197, 94, 0.3)',
   },
 ];
 
-const showcaseLogos = [
-  { color: '#6366f1', letter: 'A' },
-  { color: '#ec4899', letter: 'B' },
-  { color: '#f59e0b', letter: 'C' },
-  { color: '#22c55e', letter: 'D' },
-  { color: '#ef4444', letter: 'E' },
-  { color: '#8b5cf6', letter: 'F' },
-];
-
 export default function Home() {
+  const handleScrollToHowItWorks = () => {
+    const element = document.getElementById('how-it-works');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -89,11 +97,29 @@ export default function Home() {
           zIndex: 0,
         }}
       />
+      {/* Third gradient orb - teal for variety */}
+      <Box
+        sx={{
+          position: 'fixed',
+          top: '50%',
+          left: '60%',
+          width: 400,
+          height: 400,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(20, 184, 166, 0.1) 0%, transparent 70%)',
+          filter: 'blur(60px)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+
+      {/* Floating background logos */}
+      <FloatingLogos />
 
       <Header />
 
       {/* Main content */}
-      <Box component="main" sx={{ flexGrow: 1, pt: { xs: 12, md: 16 }, pb: 10, position: 'relative', zIndex: 1 }}>
+      <Box component="main" sx={{ flexGrow: 1, pt: { xs: 12, md: 16 }, pb: 0, position: 'relative', zIndex: 1 }}>
         {/* Hero Section */}
         <Container maxWidth="lg">
           <Box sx={{ textAlign: 'center', mb: { xs: 10, md: 14 } }}>
@@ -113,7 +139,7 @@ export default function Home() {
             >
               <AutoAwesomeIcon sx={{ fontSize: 16, color: '#818cf8' }} />
               <Typography variant="body2" sx={{ color: '#818cf8', fontWeight: 500 }}>
-                Powered by AI
+                Powered by Google Gemini
               </Typography>
             </Box>
 
@@ -189,120 +215,137 @@ export default function Home() {
               >
                 Create Your Logo
               </Button>
+              <Button
+                onClick={handleScrollToHowItWorks}
+                variant="outlined"
+                size="large"
+                sx={{
+                  px: 4,
+                  py: 1.75,
+                  fontSize: '1rem',
+                  fontWeight: 500,
+                  borderColor: 'rgba(99, 102, 241, 0.4)',
+                  color: '#a5b4fc',
+                  '&:hover': {
+                    borderColor: 'rgba(99, 102, 241, 0.6)',
+                    backgroundColor: 'rgba(99, 102, 241, 0.08)',
+                  },
+                  transition: 'all 0.3s ease',
+                }}
+              >
+                See how it works
+              </Button>
             </Stack>
           </Box>
 
           {/* Value Props */}
-          <Grid container spacing={3} sx={{ mb: { xs: 10, md: 14 } }}>
+          <Grid container spacing={3} sx={{ mb: { xs: 6, md: 10 } }}>
             {valueProps.map((prop, index) => (
               <Grid size={{ xs: 12, md: 4 }} key={index}>
-                <Card
-                  sx={{
-                    height: '100%',
-                    p: 1,
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      borderColor: 'rgba(99, 102, 241, 0.3)',
-                    },
-                  }}
-                >
-                  <CardContent sx={{ p: 3 }}>
-                    <Box
-                      sx={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: '12px',
-                        background: prop.gradient,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        mb: 2.5,
-                        boxShadow: `0 0 20px ${prop.gradient.includes('#f59e0b') ? 'rgba(245, 158, 11, 0.3)' : prop.gradient.includes('#6366f1') ? 'rgba(99, 102, 241, 0.3)' : 'rgba(34, 197, 94, 0.3)'}`,
-                      }}
-                    >
-                      <prop.icon sx={{ fontSize: 24, color: '#0a0a0a' }} />
-                    </Box>
-                    <Typography variant="h4" sx={{ mb: 1.5, fontWeight: 600 }}>
-                      {prop.title}
-                    </Typography>
-                    <Typography variant="body1" color="text.secondary">
-                      {prop.description}
-                    </Typography>
-                  </CardContent>
-                </Card>
+                <ScrollReveal delay={index * 0.1}>
+                  <Card
+                    sx={{
+                      height: '100%',
+                      p: 1,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        borderColor: 'rgba(99, 102, 241, 0.3)',
+                      },
+                    }}
+                  >
+                    <CardContent sx={{ p: 3 }}>
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: '12px',
+                          background: prop.gradient,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          mb: 2.5,
+                          boxShadow: `0 0 20px ${prop.glowColor}`,
+                        }}
+                      >
+                        <prop.icon sx={{ fontSize: 24, color: '#0a0a0a' }} />
+                      </Box>
+                      <Typography variant="h4" sx={{ mb: 1.5, fontWeight: 600 }}>
+                        {prop.title}
+                      </Typography>
+                      <Typography variant="body1" color="text.secondary">
+                        {prop.description}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </ScrollReveal>
               </Grid>
             ))}
           </Grid>
-
-          {/* Logo Showcase */}
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography
-              variant="h3"
-              sx={{
-                mb: 2,
-                fontWeight: 600,
-                letterSpacing: '-0.02em',
-              }}
-            >
-              See what you can create
-            </Typography>
-            <Typography
-              variant="body1"
-              color="text.secondary"
-              sx={{ mb: 6, maxWidth: 500, mx: 'auto' }}
-            >
-              From minimalist to playful, corporate to mascot — generate any style you imagine.
-            </Typography>
-
-            {/* Logo Grid */}
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: {
-                  xs: 'repeat(2, 1fr)',
-                  sm: 'repeat(3, 1fr)',
-                  md: 'repeat(6, 1fr)',
-                },
-                gap: 2,
-                maxWidth: 900,
-                mx: 'auto',
-              }}
-            >
-              {showcaseLogos.map((logo, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    aspectRatio: '1',
-                    borderRadius: '16px',
-                    background: `linear-gradient(135deg, ${logo.color} 0%, ${logo.color}99 100%)`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: `0 4px 30px ${logo.color}33`,
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer',
-                    '&:hover': {
-                      transform: 'scale(1.05) rotate(2deg)',
-                      boxShadow: `0 8px 40px ${logo.color}44`,
-                    },
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontSize: '2.5rem',
-                      fontWeight: 800,
-                      color: 'rgba(255, 255, 255, 0.9)',
-                      textShadow: '0 2px 10px rgba(0, 0, 0, 0.2)',
-                    }}
-                  >
-                    {logo.letter}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Box>
         </Container>
+
+        {/* How It Works Section */}
+        <HowItWorksSection />
+
+        {/* Logo Showcase Grid */}
+        <ShowcaseGrid />
+
+        {/* Platform Export Preview */}
+        <PlatformExportPreview />
+
+        {/* Final CTA Section */}
+        <Box
+          component="section"
+          sx={{
+            py: { xs: 10, md: 14 },
+            textAlign: 'center',
+          }}
+        >
+          <Container maxWidth="sm">
+            <ScrollReveal>
+              <Typography
+                variant="h3"
+                sx={{
+                  mb: 2,
+                  fontWeight: 600,
+                  letterSpacing: '-0.02em',
+                  fontSize: { xs: '1.75rem', md: '2.25rem' },
+                }}
+              >
+                Ready to create your logo?
+              </Typography>
+              <Typography
+                variant="body1"
+                color="text.secondary"
+                sx={{ mb: 4, maxWidth: 400, mx: 'auto' }}
+              >
+                Start generating professional logos in seconds. No design skills required.
+              </Typography>
+              <Button
+                component={Link}
+                href="/create"
+                variant="contained"
+                size="large"
+                sx={{
+                  px: 5,
+                  py: 1.75,
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                  boxShadow: '0 0 30px rgba(99, 102, 241, 0.4)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+                    boxShadow: '0 0 40px rgba(99, 102, 241, 0.5)',
+                    transform: 'translateY(-2px)',
+                  },
+                  transition: 'all 0.3s ease',
+                }}
+              >
+                Get Started Free
+              </Button>
+            </ScrollReveal>
+          </Container>
+        </Box>
       </Box>
 
       <Footer />
