@@ -49,3 +49,6 @@ next-env.d.ts
 
 # generated icon bundles
 logoforge-icons/
+
+# logo generation previews
+.logo-previews/
