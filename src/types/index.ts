@@ -75,3 +75,36 @@ export interface GenerationState {
   isLoading: boolean;
   error: string | null;
 }
+
+// Agent interview types
+export interface InterviewQuestion {
+  question: string;
+  answer: string;
+}
+
+export interface AgentInterviewRequest {
+  previousAnswers: InterviewQuestion[];
+  currentStep: number;
+}
+
+export interface AgentInterviewResponse {
+  question: string;
+  isLastQuestion: boolean;
+}
+
+export interface AgentFinalizeRequest {
+  answers: InterviewQuestion[];
+}
+
+export interface AgentFinalizeResponse {
+  prompt: string;
+  style: LogoStyle;
+  appName?: string;
+  colorHints?: string;
+}
+
+export interface AgentInitialValues {
+  questions?: string[];
+  answers?: string[];
+  style?: string;
+}

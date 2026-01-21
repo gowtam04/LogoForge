@@ -21,9 +21,15 @@ LogoForge is an AI-powered logo generator that creates logos from text descripti
 ### User Flow
 1. **Landing** (`/`) → 2. **Create** (`/create`) → 3. **Results** (`/results`) → 4. **Export** (`/export`)
 
+The Create page has three input modes (tabs):
+- **Text**: Direct text prompt with style/color options
+- **Reference**: Upload reference images for style inspiration
+- **AI Interview**: Guided 5-8 question wizard that crafts the prompt
+
 State between pages is passed via `sessionStorage`:
 - `generationResult`: Stored after generation, read by results page
 - `selectedLogo`: Stored after selection, read by export page
+- `agentWizardState`: Persists AI Interview wizard progress
 
 ### API Routes
 
@@ -36,6 +42,15 @@ State between pages is passed via `sessionStorage`:
 - Accepts `logoBase64`, `platforms` array, optional `backgroundColor` and `padding`
 - Uses Sharp for resizing, Archiver for ZIP creation
 - Streams ZIP file with platform-specific folder structure
+
+**POST `/api/agent/interview`** - AI Interview question generation
+- Accepts `previousAnswers` and `currentStep`
+- Uses Gemini to generate contextual follow-up questions
+- Returns `question` and `isLastQuestion` flag
+
+**POST `/api/agent/finalize`** - Synthesize interview into prompt
+- Accepts `answers` array of Q&A pairs
+- Returns optimized `prompt`, inferred `style`, extracted `appName` and `colorHints`
 
 ### Key Modules
 
@@ -53,7 +68,7 @@ Dark theme with indigo (`#6366f1`) as primary and amber/orange (`#f59e0b`) as ac
 
 ### Types
 
-All shared types are in `src/types/index.ts`: `LogoStyle`, `GenerationRequest`, `GenerationResponse`, `ExportPlatform`, etc.
+All shared types are in `src/types/index.ts`: `LogoStyle`, `GenerationRequest`, `GenerationResponse`, `ExportPlatform`, agent interview types, etc.
 
 ## Environment Variables
 

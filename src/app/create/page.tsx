@@ -16,11 +16,13 @@ import {
 import {
   TextFields as TextIcon,
   Collections as ReferenceIcon,
+  SmartToy as AgentIcon,
 } from '@mui/icons-material';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import TextInputForm from '@/components/TextInputForm';
 import ReferenceInputForm from '@/components/ReferenceInputForm';
+import AgentInputForm from '@/components/AgentInputForm';
 import { TextFormState, ReferenceFormState, GenerationRequest } from '@/types';
 
 const REQUEST_STORAGE_KEY = 'generationRequest';
@@ -276,7 +278,7 @@ export default function CreatePage() {
               Create Your Logo
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              Describe your vision or upload reference images to get started.
+              Describe your vision, upload references, or let AI guide you.
             </Typography>
           </Box>
 
@@ -345,6 +347,12 @@ export default function CreatePage() {
                   label="Upload References"
                   disabled={isLoading}
                 />
+                <Tab
+                  icon={<AgentIcon sx={{ fontSize: 20 }} />}
+                  iconPosition="start"
+                  label="AI Interview"
+                  disabled={isLoading}
+                />
               </Tabs>
 
               {/* Tab panels */}
@@ -361,6 +369,13 @@ export default function CreatePage() {
                   onSubmit={handleReferenceSubmit}
                   isLoading={isLoading}
                   initialValues={referenceInitialValues}
+                />
+              </TabPanel>
+
+              <TabPanel value={activeTab} index={2}>
+                <AgentInputForm
+                  onSubmit={handleTextSubmit}
+                  isLoading={isLoading}
                 />
               </TabPanel>
             </CardContent>
