@@ -14,6 +14,7 @@ import {
   Bolt as BoltIcon,
   AutoAwesome as AutoAwesomeIcon,
   Verified as VerifiedIcon,
+  Dashboard as DashboardIcon,
 } from '@mui/icons-material';
 import Link from 'next/link';
 import Header from '@/components/Header';
@@ -24,6 +25,8 @@ import {
   PlatformExportPreview,
   ShowcaseGrid,
   FloatingLogos,
+  ThreeWaysSection,
+  StyleGallerySection,
 } from '@/components/landing';
 
 const valueProps = [
@@ -47,6 +50,13 @@ const valueProps = [
     description: 'Export complete icon bundles for iOS, Android, and Web in one click.',
     gradient: 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)',
     glowColor: 'rgba(34, 197, 94, 0.3)',
+  },
+  {
+    icon: DashboardIcon,
+    title: '4 Unique Variations',
+    description: 'Get four distinct logo concepts to choose from with every generation.',
+    gradient: 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)',
+    glowColor: 'rgba(236, 72, 153, 0.3)',
   },
 ];
 
@@ -237,11 +247,16 @@ export default function Home() {
               </Button>
             </Stack>
           </Box>
+        </Container>
 
-          {/* Value Props */}
+        {/* Three Ways to Create */}
+        <ThreeWaysSection />
+
+        {/* Value Props */}
+        <Container maxWidth="lg">
           <Grid container spacing={3} sx={{ mb: { xs: 6, md: 10 } }}>
             {valueProps.map((prop, index) => (
-              <Grid size={{ xs: 12, md: 4 }} key={index}>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={index}>
                 <ScrollReveal delay={index * 0.1}>
                   <Card
                     sx={{
@@ -286,6 +301,9 @@ export default function Home() {
 
         {/* How It Works Section */}
         <HowItWorksSection />
+
+        {/* Style Gallery */}
+        <StyleGallerySection />
 
         {/* Logo Showcase Grid */}
         <ShowcaseGrid />

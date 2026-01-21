@@ -2,6 +2,7 @@
 
 import { AppBar, Toolbar, Typography, Button, Container, Box, alpha } from '@mui/material';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Header() {
   return (
@@ -25,38 +26,20 @@ export default function Header() {
             >
             <Box
               sx={{
-                width: 36,
-                height: 36,
-                borderRadius: '8px',
-                background: 'linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                width: 44,
+                height: 44,
                 mr: 1.5,
-                boxShadow: '0 0 20px rgba(245, 158, 11, 0.3)',
                 position: 'relative',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  inset: -1,
-                  borderRadius: '9px',
-                  background: 'linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)',
-                  opacity: 0.5,
-                  filter: 'blur(4px)',
-                  zIndex: -1,
-                },
+                filter: 'drop-shadow(0 0 12px rgba(245, 158, 11, 0.5))',
               }}
             >
-              <Typography
-                sx={{
-                  fontSize: '1.25rem',
-                  fontWeight: 800,
-                  color: '#0a0a0a',
-                  lineHeight: 1,
-                }}
-              >
-                L
-              </Typography>
+              <Image
+                src="/android-chrome-192x192.png"
+                alt="LogoForge logo"
+                width={44}
+                height={44}
+                priority
+              />
             </Box>
             <Typography
               variant="h6"
