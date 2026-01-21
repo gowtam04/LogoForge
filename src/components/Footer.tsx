@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Container, Typography, Stack, Link as MuiLink } from '@mui/material';
+import { Box, Container, Typography, Stack } from '@mui/material';
 
 export default function Footer() {
   return (
@@ -24,36 +24,9 @@ export default function Footer() {
             LogoForge — AI-powered logo generation
           </Typography>
 
-          <Stack direction="row" spacing={3}>
-            <MuiLink
-              href="#"
-              underline="hover"
-              sx={{
-                color: 'text.secondary',
-                fontSize: '0.875rem',
-                transition: 'color 0.2s ease',
-                '&:hover': {
-                  color: 'text.primary',
-                },
-              }}
-            >
-              Privacy
-            </MuiLink>
-            <MuiLink
-              href="#"
-              underline="hover"
-              sx={{
-                color: 'text.secondary',
-                fontSize: '0.875rem',
-                transition: 'color 0.2s ease',
-                '&:hover': {
-                  color: 'text.primary',
-                },
-              }}
-            >
-              Terms
-            </MuiLink>
-          </Stack>
+          <Typography variant="body2" color="text.secondary">
+            Made with AI
+          </Typography>
         </Stack>
       </Container>
     </Box>

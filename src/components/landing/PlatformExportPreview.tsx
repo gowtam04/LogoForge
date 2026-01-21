@@ -147,7 +147,7 @@ export default function PlatformExportPreview() {
         <ScrollReveal>
           <Box sx={{ textAlign: 'center', mb: { xs: 8, md: 10 } }}>
             <Typography
-              variant="h3"
+              variant="h2"
               sx={{
                 mb: 2,
                 fontWeight: 600,
