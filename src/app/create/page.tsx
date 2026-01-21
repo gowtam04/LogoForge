@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Box,
@@ -21,7 +21,9 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import TextInputForm from '@/components/TextInputForm';
 import ReferenceInputForm from '@/components/ReferenceInputForm';
-import { TextFormState, ReferenceFormState } from '@/types';
+import { TextFormState, ReferenceFormState, GenerationRequest } from '@/types';
+
+const REQUEST_STORAGE_KEY = 'generationRequest';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -44,29 +46,78 @@ function TabPanel({ children, value, index }: TabPanelProps) {
   );
 }
 
+// Initial values for pre-filling forms from stored request
+interface TextInitialValues {
+  prompt: string;
+  appName: string;
+  style: string;
+  colorHints: string;
+}
+
+interface ReferenceInitialValues {
+  prompt: string;
+  style: string;
+  images: string[]; // Base64 images
+}
+
 export default function CreatePage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [textInitialValues, setTextInitialValues] = useState<TextInitialValues | undefined>(undefined);
+  const [referenceInitialValues, setReferenceInitialValues] = useState<ReferenceInitialValues | undefined>(undefined);
+
+  // Load stored request data on mount
+  useEffect(() => {
+    const storedRequest = sessionStorage.getItem(REQUEST_STORAGE_KEY);
+    if (storedRequest) {
+      try {
+        const requestData: GenerationRequest = JSON.parse(storedRequest);
+
+        if (requestData.mode === 'text') {
+          setActiveTab(0);
+          setTextInitialValues({
+            prompt: requestData.prompt,
+            appName: requestData.options.appName || '',
+            style: requestData.options.style,
+            colorHints: requestData.options.colorHints || '',
+          });
+        } else if (requestData.mode === 'reference') {
+          setActiveTab(1);
+          setReferenceInitialValues({
+            prompt: requestData.prompt === 'Create a logo inspired by these reference images' ? '' : requestData.prompt,
+            style: requestData.options.style,
+            images: requestData.images || [],
+          });
+        }
+      } catch {
+        // Invalid stored data, ignore
+      }
+    }
+  }, []);
 
   const handleTextSubmit = async (data: TextFormState) => {
     setIsLoading(true);
     setError(null);
 
     try {
+      // Store request data for regeneration/editing
+      const requestData: GenerationRequest = {
+        mode: 'text',
+        prompt: data.prompt,
+        options: {
+          style: data.style,
+          appName: data.appName || undefined,
+          colorHints: data.colorHints || undefined,
+        },
+      };
+      sessionStorage.setItem(REQUEST_STORAGE_KEY, JSON.stringify(requestData));
+
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mode: 'text',
-          prompt: data.prompt,
-          options: {
-            style: data.style,
-            appName: data.appName || undefined,
-            colorHints: data.colorHints || undefined,
-          },
-        }),
+        body: JSON.stringify(requestData),
       });
 
       if (!response.ok) {
@@ -102,17 +153,21 @@ export default function CreatePage() {
 
       const base64Images = await Promise.all(imagePromises);
 
+      // Store request data for regeneration/editing
+      const requestData: GenerationRequest = {
+        mode: 'reference',
+        prompt: data.prompt || 'Create a logo inspired by these reference images',
+        images: base64Images,
+        options: {
+          style: data.style,
+        },
+      };
+      sessionStorage.setItem(REQUEST_STORAGE_KEY, JSON.stringify(requestData));
+
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mode: 'reference',
-          prompt: data.prompt || 'Create a logo inspired by these reference images',
-          images: base64Images,
-          options: {
-            style: data.style,
-          },
-        }),
+        body: JSON.stringify(requestData),
       });
 
       if (!response.ok) {
@@ -294,13 +349,18 @@ export default function CreatePage() {
 
               {/* Tab panels */}
               <TabPanel value={activeTab} index={0}>
-                <TextInputForm onSubmit={handleTextSubmit} isLoading={isLoading} />
+                <TextInputForm
+                  onSubmit={handleTextSubmit}
+                  isLoading={isLoading}
+                  initialValues={textInitialValues}
+                />
               </TabPanel>
 
               <TabPanel value={activeTab} index={1}>
                 <ReferenceInputForm
                   onSubmit={handleReferenceSubmit}
                   isLoading={isLoading}
+                  initialValues={referenceInitialValues}
                 />
               </TabPanel>
             </CardContent>

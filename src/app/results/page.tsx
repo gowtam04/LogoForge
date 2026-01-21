@@ -11,21 +11,25 @@ import {
   Paper,
   alpha,
   Fade,
+  LinearProgress,
+  Alert,
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ImageSearchIcon from '@mui/icons-material/ImageSearch';
+import EditIcon from '@mui/icons-material/Edit';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import LogoGrid from '@/components/LogoGrid';
 import LogoPreviewDialog from '@/components/LogoPreviewDialog';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import EmptyState from '@/components/EmptyState';
-import { GeneratedLogo, GenerationResponse } from '@/types';
+import { GeneratedLogo, GenerationResponse, GenerationRequest } from '@/types';
 
 const STORAGE_KEY = 'generationResult';
 const SELECTED_LOGO_KEY = 'selectedLogo';
+const REQUEST_STORAGE_KEY = 'generationRequest';
 
 // Custom hook for reading sessionStorage using useSyncExternalStore
 function useSessionStorage<T>(key: string): T | null {
@@ -71,6 +75,16 @@ export default function ResultsPage() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showEmptyState, setShowEmptyState] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [regenerateError, setRegenerateError] = useState<string | null>(null);
+  const [localGenerationResult, setLocalGenerationResult] = useState<GenerationResponse | null>(null);
+
+  // Sync local state with sessionStorage on mount
+  useEffect(() => {
+    if (generationResult && !localGenerationResult) {
+      setLocalGenerationResult(generationResult);
+    }
+  }, [generationResult, localGenerationResult]);
 
   // Handle initial loading state and check for results
   useEffect(() => {
@@ -85,11 +99,14 @@ export default function ResultsPage() {
     return () => clearTimeout(timer);
   }, [generationResult]);
 
+  // Use local state if available, otherwise fall back to sessionStorage
+  const activeResult = localGenerationResult || generationResult;
+
   // Compute the effective selected ID - use first logo if none selected
   const effectiveSelectedId = useMemo(() => {
     if (selectedId) return selectedId;
-    return generationResult?.logos?.[0]?.id ?? null;
-  }, [selectedId, generationResult]);
+    return activeResult?.logos?.[0]?.id ?? null;
+  }, [selectedId, activeResult]);
 
   const handleSelect = useCallback((id: string) => {
     setSelectedId(id);
@@ -108,27 +125,67 @@ export default function ResultsPage() {
     setSelectedId(id);
   }, []);
 
-  const handleRegenerateAll = useCallback(() => {
-    // Clear results and go back to create
-    sessionStorage.removeItem(STORAGE_KEY);
-    sessionStorage.removeItem(SELECTED_LOGO_KEY);
+  const handleRegenerateAll = useCallback(async () => {
+    // Get stored request data
+    const storedRequest = sessionStorage.getItem(REQUEST_STORAGE_KEY);
+    if (!storedRequest) {
+      // No stored request, fall back to navigating to create page
+      sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(SELECTED_LOGO_KEY);
+      router.push('/create');
+      return;
+    }
+
+    setIsRegenerating(true);
+    setRegenerateError(null);
+    setSelectedId(null); // Reset selection
+
+    try {
+      const requestData: GenerationRequest = JSON.parse(storedRequest);
+
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to regenerate logos');
+      }
+
+      const result: GenerationResponse = await response.json();
+
+      // Update both local state and sessionStorage
+      setLocalGenerationResult(result);
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(result));
+      sessionStorage.removeItem(SELECTED_LOGO_KEY);
+    } catch (err) {
+      setRegenerateError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setIsRegenerating(false);
+    }
+  }, [router]);
+
+  const handleEditPrompt = useCallback(() => {
+    // Navigate to create page - request data stays in sessionStorage
     router.push('/create');
   }, [router]);
 
   const handleExportIcons = useCallback(() => {
-    if (!effectiveSelectedId || !generationResult) return;
+    if (!effectiveSelectedId || !activeResult) return;
 
     // Find the selected logo
-    const logo = generationResult.logos.find((l) => l.id === effectiveSelectedId);
+    const logo = activeResult.logos.find((l) => l.id === effectiveSelectedId);
     if (!logo) return;
 
     // Store selected logo in sessionStorage for export page
     sessionStorage.setItem(SELECTED_LOGO_KEY, JSON.stringify(logo));
     router.push('/export');
-  }, [effectiveSelectedId, generationResult, router]);
+  }, [effectiveSelectedId, activeResult, router]);
 
   // Memoize logos array for stability
-  const logos = useMemo(() => generationResult?.logos ?? [], [generationResult]);
+  const logos = useMemo(() => activeResult?.logos ?? [], [activeResult]);
 
   // Loading state while checking sessionStorage
   if (isLoading) {
@@ -174,7 +231,7 @@ export default function ResultsPage() {
   }
 
   // Empty state when no results found
-  if (showEmptyState || !generationResult) {
+  if (showEmptyState || !activeResult) {
     return (
       <Box
         sx={{
@@ -267,6 +324,30 @@ export default function ResultsPage() {
 
       <Header />
 
+      {/* Regeneration loading bar */}
+      {isRegenerating && (
+        <LinearProgress
+          sx={{
+            position: 'fixed',
+            top: 70,
+            left: 0,
+            right: 0,
+            zIndex: 1200,
+            height: 3,
+            backgroundColor: 'rgba(99, 102, 241, 0.2)',
+            '& .MuiLinearProgress-bar': {
+              background: 'linear-gradient(90deg, #6366f1 0%, #f59e0b 50%, #6366f1 100%)',
+              backgroundSize: '200% 100%',
+              animation: 'shimmer 2s infinite linear',
+              '@keyframes shimmer': {
+                '0%': { backgroundPosition: '200% 0' },
+                '100%': { backgroundPosition: '-200% 0' },
+              },
+            },
+          }}
+        />
+      )}
+
       {/* Main content */}
       <Box
         component="main"
@@ -353,6 +434,21 @@ export default function ResultsPage() {
                 />
               </Paper>
 
+              {/* Error alert */}
+              {regenerateError && (
+                <Alert
+                  severity="error"
+                  onClose={() => setRegenerateError(null)}
+                  sx={{
+                    mb: 3,
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                  }}
+                >
+                  {regenerateError}
+                </Alert>
+              )}
+
               {/* Action buttons */}
               <Stack
                 direction={{ xs: 'column', sm: 'row' }}
@@ -364,6 +460,7 @@ export default function ResultsPage() {
                   variant="outlined"
                   startIcon={<RefreshIcon />}
                   onClick={handleRegenerateAll}
+                  disabled={isRegenerating}
                   sx={{
                     px: 4,
                     py: 1.5,
@@ -374,32 +471,61 @@ export default function ResultsPage() {
                       backgroundColor: alpha('#fff', 0.05),
                       color: 'text.primary',
                     },
+                    '&:disabled': {
+                      borderColor: alpha('#fff', 0.1),
+                      color: alpha('#fff', 0.3),
+                    },
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  Regenerate All
+                  {isRegenerating ? 'Regenerating...' : 'Regenerate All'}
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  startIcon={<EditIcon />}
+                  onClick={handleEditPrompt}
+                  disabled={isRegenerating}
+                  sx={{
+                    px: 4,
+                    py: 1.5,
+                    borderColor: alpha('#fff', 0.2),
+                    color: 'text.secondary',
+                    '&:hover': {
+                      borderColor: alpha('#fff', 0.4),
+                      backgroundColor: alpha('#fff', 0.05),
+                      color: 'text.primary',
+                    },
+                    '&:disabled': {
+                      borderColor: alpha('#fff', 0.1),
+                      color: alpha('#fff', 0.3),
+                    },
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  Edit Prompt
                 </Button>
 
                 <Button
                   variant="contained"
                   startIcon={<FileDownloadIcon />}
                   onClick={handleExportIcons}
-                  disabled={!effectiveSelectedId}
+                  disabled={!effectiveSelectedId || isRegenerating}
                   sx={{
                     px: 4,
                     py: 1.5,
-                    background: effectiveSelectedId
+                    background: effectiveSelectedId && !isRegenerating
                       ? 'linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)'
                       : undefined,
-                    boxShadow: effectiveSelectedId
+                    boxShadow: effectiveSelectedId && !isRegenerating
                       ? `0 4px 20px ${alpha('#f59e0b', 0.4)}`
                       : 'none',
                     '&:hover': {
-                      background: effectiveSelectedId
+                      background: effectiveSelectedId && !isRegenerating
                         ? 'linear-gradient(135deg, #d97706 0%, #dc2626 100%)'
                         : undefined,
-                      transform: effectiveSelectedId ? 'translateY(-2px)' : 'none',
-                      boxShadow: effectiveSelectedId
+                      transform: effectiveSelectedId && !isRegenerating ? 'translateY(-2px)' : 'none',
+                      boxShadow: effectiveSelectedId && !isRegenerating
                         ? `0 6px 25px ${alpha('#f59e0b', 0.5)}`
                         : 'none',
                     },
@@ -415,7 +541,7 @@ export default function ResultsPage() {
               </Stack>
 
               {/* Hint text */}
-              {!effectiveSelectedId && (
+              {!effectiveSelectedId && !isRegenerating && (
                 <Fade in>
                   <Typography
                     variant="body2"
@@ -425,6 +551,25 @@ export default function ResultsPage() {
                     Select a logo above to enable export
                   </Typography>
                 </Fade>
+              )}
+
+              {/* Regeneration loading message */}
+              {isRegenerating && (
+                <Box sx={{ textAlign: 'center', mt: 3 }}>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      animation: 'fadeInOut 2s ease-in-out infinite',
+                      '@keyframes fadeInOut': {
+                        '0%, 100%': { opacity: 0.5 },
+                        '50%': { opacity: 1 },
+                      },
+                    }}
+                  >
+                    Forging new logos... This may take a moment.
+                  </Typography>
+                </Box>
               )}
             </Box>
           </Fade>

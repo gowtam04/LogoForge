@@ -1,26 +1,86 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Box, TextField, Button, Typography, Stack, Alert } from '@mui/material';
 import { AutoAwesome as GenerateIcon } from '@mui/icons-material';
 import StyleSelector from './StyleSelector';
 import ImageUploader from './ImageUploader';
 import { ReferenceFormState, LogoStyle } from '@/types';
 
+interface ReferenceInitialValues {
+  prompt: string;
+  style: string;
+  images: string[]; // Base64 data URLs
+}
+
 interface ReferenceInputFormProps {
   onSubmit: (data: ReferenceFormState) => void;
   isLoading?: boolean;
+  initialValues?: ReferenceInitialValues;
+}
+
+// Convert base64 data URL to File object
+async function base64ToFile(base64DataUrl: string, index: number): Promise<File> {
+  const response = await fetch(base64DataUrl);
+  const blob = await response.blob();
+  const extension = blob.type.split('/')[1] || 'png';
+  return new File([blob], `reference-${index + 1}.${extension}`, { type: blob.type });
+}
+
+// Helper to create initial form state (without images, those are loaded async)
+function createInitialFormState(initialValues?: ReferenceInitialValues): ReferenceFormState {
+  return {
+    images: [],
+    prompt: initialValues?.prompt || '',
+    style: (initialValues?.style as LogoStyle) || 'any',
+  };
 }
 
 export default function ReferenceInputForm({
   onSubmit,
   isLoading = false,
+  initialValues,
 }: ReferenceInputFormProps) {
-  const [formState, setFormState] = useState<ReferenceFormState>({
-    images: [],
-    prompt: '',
-    style: 'any',
-  });
+  // Create a stable key for sync values (prompt and style)
+  const syncKey = useMemo(
+    () => initialValues ? `${initialValues.prompt}-${initialValues.style}` : 'default',
+    [initialValues]
+  );
+
+  const [formState, setFormState] = useState<ReferenceFormState>(() =>
+    createInitialFormState(initialValues)
+  );
+
+  // Reset form state when initialValues change (sync values only)
+  const [prevSyncKey, setPrevSyncKey] = useState(syncKey);
+  if (prevSyncKey !== syncKey) {
+    setPrevSyncKey(syncKey);
+    setFormState(createInitialFormState(initialValues));
+  }
+
+  // Track if we've loaded images for the current initialValues
+  const loadedImagesKey = useRef<string | null>(null);
+  const initialImages = initialValues?.images;
+  const imagesKey = useMemo(
+    () => initialImages ? JSON.stringify(initialImages) : null,
+    [initialImages]
+  );
+
+  // Load base64 images asynchronously (only when images change)
+  useEffect(() => {
+    if (imagesKey && imagesKey !== loadedImagesKey.current && initialImages?.length) {
+      loadedImagesKey.current = imagesKey;
+
+      Promise.all(
+        initialImages.map((base64, index) => base64ToFile(base64, index))
+      ).then((files) => {
+        setFormState((prev) => ({
+          ...prev,
+          images: files,
+        }));
+      });
+    }
+  }, [imagesKey, initialImages]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

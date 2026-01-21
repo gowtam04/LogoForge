@@ -1,35 +1,63 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Box,
   TextField,
   Button,
   Typography,
   Stack,
-  InputAdornment,
 } from '@mui/material';
 import { AutoAwesome as GenerateIcon } from '@mui/icons-material';
 import StyleSelector from './StyleSelector';
 import { TextFormState, LogoStyle } from '@/types';
 
+interface TextInitialValues {
+  prompt: string;
+  appName: string;
+  style: string;
+  colorHints: string;
+}
+
 interface TextInputFormProps {
   onSubmit: (data: TextFormState) => void;
   isLoading?: boolean;
+  initialValues?: TextInitialValues;
 }
 
 const MAX_PROMPT_LENGTH = 500;
 
+// Helper to create initial form state
+function createInitialFormState(initialValues?: TextInitialValues): TextFormState {
+  return {
+    prompt: initialValues?.prompt || '',
+    appName: initialValues?.appName || '',
+    style: (initialValues?.style as LogoStyle) || 'any',
+    colorHints: initialValues?.colorHints || '',
+  };
+}
+
 export default function TextInputForm({
   onSubmit,
   isLoading = false,
+  initialValues,
 }: TextInputFormProps) {
-  const [formState, setFormState] = useState<TextFormState>({
-    prompt: '',
-    appName: '',
-    style: 'any',
-    colorHints: '',
-  });
+  // Create a stable key based on initialValues to reset form when they change
+  const formKey = useMemo(
+    () => initialValues ? JSON.stringify(initialValues) : 'default',
+    [initialValues]
+  );
+
+  const [formState, setFormState] = useState<TextFormState>(() =>
+    createInitialFormState(initialValues)
+  );
+
+  // Reset form state when initialValues change by using key
+  const [prevKey, setPrevKey] = useState(formKey);
+  if (prevKey !== formKey) {
+    setPrevKey(formKey);
+    setFormState(createInitialFormState(initialValues));
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
