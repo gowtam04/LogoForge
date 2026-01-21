@@ -44,7 +44,7 @@ export async function generateLogos(
 
   // Get the model with image generation capabilities
   const model = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash-exp',
+    model: 'gemini-3-pro-image-preview',
     generationConfig: {
       responseModalities: ['image', 'text'],
     } as Record<string, unknown>,
