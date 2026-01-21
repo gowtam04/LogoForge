@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useSyncExternalStore, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Container,
@@ -25,50 +25,15 @@ import LogoGrid from '@/components/LogoGrid';
 import LogoPreviewDialog from '@/components/LogoPreviewDialog';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import EmptyState from '@/components/EmptyState';
+import { useSessionStorage } from '@/lib/hooks';
+import { STORAGE_KEYS } from '@/lib/constants';
 import { GeneratedLogo, GenerationResponse, GenerationRequest } from '@/types';
-
-const STORAGE_KEY = 'generationResult';
-const SELECTED_LOGO_KEY = 'selectedLogo';
-const REQUEST_STORAGE_KEY = 'generationRequest';
-
-// Custom hook for reading sessionStorage using useSyncExternalStore
-function useSessionStorage<T>(key: string): T | null {
-  const subscribe = useCallback(
-    (callback: () => void) => {
-      window.addEventListener('storage', callback);
-      return () => window.removeEventListener('storage', callback);
-    },
-    []
-  );
-
-  const getSnapshot = useCallback(() => {
-    try {
-      const item = sessionStorage.getItem(key);
-      return item;
-    } catch {
-      return null;
-    }
-  }, [key]);
-
-  const getServerSnapshot = useCallback(() => null, []);
-
-  const rawValue = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-
-  return useMemo(() => {
-    if (!rawValue) return null;
-    try {
-      return JSON.parse(rawValue) as T;
-    } catch {
-      return null;
-    }
-  }, [rawValue]);
-}
 
 export default function ResultsPage() {
   const router = useRouter();
 
   // Read generation result from sessionStorage using sync external store
-  const generationResult = useSessionStorage<GenerationResponse>(STORAGE_KEY);
+  const generationResult = useSessionStorage<GenerationResponse>(STORAGE_KEYS.GENERATION_RESULT);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [previewLogo, setPreviewLogo] = useState<GeneratedLogo | null>(null);
@@ -127,11 +92,11 @@ export default function ResultsPage() {
 
   const handleRegenerateAll = useCallback(async () => {
     // Get stored request data
-    const storedRequest = sessionStorage.getItem(REQUEST_STORAGE_KEY);
+    const storedRequest = sessionStorage.getItem(STORAGE_KEYS.GENERATION_REQUEST);
     if (!storedRequest) {
       // No stored request, fall back to navigating to create page
-      sessionStorage.removeItem(STORAGE_KEY);
-      sessionStorage.removeItem(SELECTED_LOGO_KEY);
+      sessionStorage.removeItem(STORAGE_KEYS.GENERATION_RESULT);
+      sessionStorage.removeItem(STORAGE_KEYS.SELECTED_LOGO);
       router.push('/create');
       return;
     }
@@ -158,8 +123,8 @@ export default function ResultsPage() {
 
       // Update both local state and sessionStorage
       setLocalGenerationResult(result);
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(result));
-      sessionStorage.removeItem(SELECTED_LOGO_KEY);
+      sessionStorage.setItem(STORAGE_KEYS.GENERATION_RESULT, JSON.stringify(result));
+      sessionStorage.removeItem(STORAGE_KEYS.SELECTED_LOGO);
     } catch (err) {
       setRegenerateError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
@@ -180,7 +145,7 @@ export default function ResultsPage() {
     if (!logo) return;
 
     // Store selected logo in sessionStorage for export page
-    sessionStorage.setItem(SELECTED_LOGO_KEY, JSON.stringify(logo));
+    sessionStorage.setItem(STORAGE_KEYS.SELECTED_LOGO, JSON.stringify(logo));
     router.push('/export');
   }, [effectiveSelectedId, activeResult, router]);
 

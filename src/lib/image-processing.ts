@@ -22,8 +22,6 @@ import {
   generateAndroidColorsXml,
   generateWebManifestStructure,
   generateBrowserConfigXml,
-  type IOSIconSize,
-  type AndroidIconSize,
 } from './icon-sizes';
 
 // ============================================================================

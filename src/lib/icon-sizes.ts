@@ -39,16 +39,6 @@ export const IOS_ICON_SIZES: IOSIconSize[] = [
   { size: 20, filename: 'AppIcon-20@1x.png', idiom: 'ipad', scale: '1x' },
 ];
 
-// Point sizes for Contents.json (actual size = point * scale)
-export const IOS_POINT_SIZES: { points: number; idioms: ('iphone' | 'ipad')[] }[] = [
-  { points: 20, idioms: ['iphone', 'ipad'] },
-  { points: 29, idioms: ['iphone', 'ipad'] },
-  { points: 40, idioms: ['iphone', 'ipad'] },
-  { points: 60, idioms: ['iphone'] },
-  { points: 76, idioms: ['ipad'] },
-  { points: 83.5, idioms: ['ipad'] },
-];
-
 // ============================================================================
 // Android Icon Configurations (mipmap folders)
 // ============================================================================
@@ -91,15 +81,6 @@ export const ANDROID_ADAPTIVE_SIZES: AndroidIconSize[] = [
 // Play Store icon
 export const ANDROID_PLAYSTORE_SIZE = 512;
 
-// Density multipliers for Android
-export const ANDROID_DENSITY_MULTIPLIERS: Record<AndroidDensity, number> = {
-  mdpi: 1,
-  hdpi: 1.5,
-  xhdpi: 2,
-  xxhdpi: 3,
-  xxxhdpi: 4,
-};
-
 // ============================================================================
 // Web Icon Configurations
 // ============================================================================
@@ -138,12 +119,6 @@ export const WEB_MSTILE_SIZES: WebIconSize[] = [
   { size: 150, filename: 'mstile-150x150.png' },
   { size: 310, filename: 'mstile-310x310.png' },
 ];
-
-// Safari pinned tab (SVG would be ideal, but we'll provide a PNG)
-export const WEB_SAFARI_PINNED_SIZE: WebIconSize = {
-  size: 512,
-  filename: 'safari-pinned-tab.png',
-};
 
 // ============================================================================
 // Combined Platform Configurations
@@ -190,37 +165,6 @@ export const PLATFORM_CONFIGS: Record<ExportPlatform, PlatformIconConfig> = {
 // ============================================================================
 // Helper Functions for Configuration Generation
 // ============================================================================
-
-/**
- * Get all unique sizes needed for a platform
- */
-export function getUniqueSizes(platform: ExportPlatform): number[] {
-  const config = PLATFORM_CONFIGS[platform];
-  const sizes = new Set(config.sizes.map(s => s.size));
-  return Array.from(sizes).sort((a, b) => b - a);
-}
-
-/**
- * Get the folder structure for a platform
- */
-export function getFolderStructure(platform: ExportPlatform): string[] {
-  switch (platform) {
-    case 'ios':
-      return ['ios/AppIcon.appiconset'];
-    case 'android':
-      return [
-        'android/mipmap-mdpi',
-        'android/mipmap-hdpi',
-        'android/mipmap-xhdpi',
-        'android/mipmap-xxhdpi',
-        'android/mipmap-xxxhdpi',
-      ];
-    case 'web':
-      return ['web'];
-    default:
-      return [];
-  }
-}
 
 /**
  * Generate iOS Contents.json structure

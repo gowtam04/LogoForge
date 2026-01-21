@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useMemo, useEffect } from 'react';
 import { Box, Typography, IconButton, alpha } from '@mui/material';
 import {
   CloudUpload as UploadIcon,
@@ -68,6 +68,18 @@ export default function ImageUploader({
 
   const canAddMore = images.length < maxImages;
 
+  // Create stable object URLs for image previews and revoke them on cleanup
+  const imageUrls = useMemo(() => {
+    return images.map((file) => URL.createObjectURL(file));
+  }, [images]);
+
+  // Revoke object URLs when they change or component unmounts
+  useEffect(() => {
+    return () => {
+      imageUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [imageUrls]);
+
   return (
     <Box>
       <Typography
@@ -124,7 +136,7 @@ export default function ImageUploader({
             >
               <Box
                 component="img"
-                src={URL.createObjectURL(file)}
+                src={imageUrls[index]}
                 alt={`Reference ${index + 1}`}
                 sx={{
                   width: '100%',

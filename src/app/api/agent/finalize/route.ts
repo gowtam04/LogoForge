@@ -98,9 +98,7 @@ Generate the JSON response:`;
     }
 
     return NextResponse.json(parsedResponse);
-  } catch (error) {
-    console.error('Finalize API error:', error);
-
+  } catch {
     // Try to generate a fallback response
     try {
       const body = await request.clone().json();

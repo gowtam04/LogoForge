@@ -1,33 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { generateLogos } from '@/lib/google-ai';
+import { createErrorResponse } from '@/lib/api-utils';
 import type { GenerationRequest, GenerationResponse, LogoStyle } from '@/types';
 
 // Valid logo styles for validation
 const validStyles: LogoStyle[] = ['any', 'minimalist', 'playful', 'corporate', 'mascot'];
-
-/**
- * Standard error response format
- */
-interface ApiErrorResponse {
-  error: string;
-  code?: string;
-}
-
-/**
- * Create a standardized error response
- */
-function createErrorResponse(
-  message: string,
-  status: number,
-  code?: string
-): NextResponse<ApiErrorResponse> {
-  const body: ApiErrorResponse = { error: message };
-  if (code) {
-    body.code = code;
-  }
-  return NextResponse.json(body, { status });
-}
 
 /**
  * POST /api/generate
@@ -58,7 +36,6 @@ export async function POST(request: NextRequest) {
 
     // Check for API key
     if (!process.env.GOOGLE_AI_API_KEY) {
-      console.error('GOOGLE_AI_API_KEY environment variable is not set');
       return createErrorResponse(
         'Server configuration error. Please contact support.',
         500,
@@ -102,8 +79,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error in /api/generate:', error);
-
     // Handle specific error types
     if (error instanceof Error) {
       // Check for network errors

@@ -6,39 +6,13 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import archiver from 'archiver';
-import { Readable, PassThrough } from 'stream';
+import { PassThrough } from 'stream';
 import type { ExportPlatform, ExportRequest } from '@/types';
 import {
   processLogoForPlatforms,
   isValidBase64Image,
 } from '@/lib/image-processing';
-
-// ============================================================================
-// Error Response Types
-// ============================================================================
-
-/**
- * Standard error response format
- */
-interface ApiErrorResponse {
-  error: string;
-  code?: string;
-}
-
-/**
- * Create a standardized error response
- */
-function createErrorResponse(
-  message: string,
-  status: number,
-  code?: string
-): NextResponse<ApiErrorResponse> {
-  const body: ApiErrorResponse = { error: message };
-  if (code) {
-    body.code = code;
-  }
-  return NextResponse.json(body, { status });
-}
+import { createErrorResponse } from '@/lib/api-utils';
 
 // ============================================================================
 // Validation
@@ -150,43 +124,6 @@ function validateExportRequest(body: unknown): ValidationResult {
 // ============================================================================
 
 /**
- * Create a ZIP archive with the processed images
- */
-async function createZipArchive(
-  files: Map<string, Buffer>
-): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const archive = archiver('zip', {
-      zlib: { level: 9 }, // Maximum compression
-    });
-
-    const chunks: Buffer[] = [];
-
-    archive.on('data', (chunk: Buffer) => {
-      chunks.push(chunk);
-    });
-
-    archive.on('end', () => {
-      resolve(Buffer.concat(chunks));
-    });
-
-    archive.on('error', (err) => {
-      reject(err);
-    });
-
-    // Add all files to the archive with proper structure
-    for (const [path, buffer] of files) {
-      // Prepend root folder name
-      const fullPath = `logoforge-icons/${path}`;
-      archive.append(buffer, { name: fullPath });
-    }
-
-    // Finalize the archive
-    archive.finalize();
-  });
-}
-
-/**
  * Create a streaming ZIP archive response
  */
 function createStreamingZipResponse(
@@ -199,7 +136,6 @@ function createStreamingZipResponse(
   });
 
   archive.on('error', (err) => {
-    console.error('Archive error:', err);
     passThrough.destroy(err);
   });
 
@@ -267,10 +203,6 @@ export async function POST(request: NextRequest) {
     const exportRequest = body as ExportRequest;
 
     // Process images for all requested platforms with timeout handling
-    console.log(
-      `Processing export for platforms: ${exportRequest.platforms.join(', ')}`
-    );
-
     let files: Map<string, Buffer>;
     try {
       files = await Promise.race([
@@ -300,8 +232,6 @@ export async function POST(request: NextRequest) {
       throw error;
     }
 
-    console.log(`Generated ${files.size} files`);
-
     // Generate timestamp for filename
     const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const filename = `logoforge-icons-${timestamp}.zip`;
@@ -319,8 +249,6 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Export error:', error);
-
     // Handle specific error types
     if (error instanceof Error) {
       // Sharp errors - unsupported format

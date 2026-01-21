@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useSyncExternalStore, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -32,9 +31,9 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import EmptyState from '@/components/EmptyState';
+import { useSessionStorage } from '@/lib/hooks';
+import { STORAGE_KEYS } from '@/lib/constants';
 import { GeneratedLogo, ExportPlatform } from '@/types';
-
-const SELECTED_LOGO_KEY = 'selectedLogo';
 
 // Platform configuration with icons and descriptions
 const PLATFORMS = [
@@ -58,39 +57,6 @@ const PLATFORMS = [
   },
 ];
 
-// Custom hook for reading sessionStorage using useSyncExternalStore
-function useSessionStorage<T>(key: string): T | null {
-  const subscribe = useCallback(
-    (callback: () => void) => {
-      window.addEventListener('storage', callback);
-      return () => window.removeEventListener('storage', callback);
-    },
-    []
-  );
-
-  const getSnapshot = useCallback(() => {
-    try {
-      const item = sessionStorage.getItem(key);
-      return item;
-    } catch {
-      return null;
-    }
-  }, [key]);
-
-  const getServerSnapshot = useCallback(() => null, []);
-
-  const rawValue = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-
-  return useMemo(() => {
-    if (!rawValue) return null;
-    try {
-      return JSON.parse(rawValue) as T;
-    } catch {
-      return null;
-    }
-  }, [rawValue]);
-}
-
 // Checkered background pattern for transparency preview
 const checkeredBackground = `
   linear-gradient(45deg, #2a2a2a 25%, transparent 25%),
@@ -100,10 +66,8 @@ const checkeredBackground = `
 `;
 
 export default function ExportPage() {
-  const router = useRouter();
-
   // Read selected logo from sessionStorage
-  const selectedLogo = useSessionStorage<GeneratedLogo>(SELECTED_LOGO_KEY);
+  const selectedLogo = useSessionStorage<GeneratedLogo>(STORAGE_KEYS.SELECTED_LOGO);
 
   // State for export options
   const [selectedPlatforms, setSelectedPlatforms] = useState<ExportPlatform[]>([

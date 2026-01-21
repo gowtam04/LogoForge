@@ -23,9 +23,8 @@ import Footer from '@/components/Footer';
 import TextInputForm from '@/components/TextInputForm';
 import ReferenceInputForm from '@/components/ReferenceInputForm';
 import AgentInputForm from '@/components/AgentInputForm';
+import { STORAGE_KEYS } from '@/lib/constants';
 import { TextFormState, ReferenceFormState, GenerationRequest } from '@/types';
-
-const REQUEST_STORAGE_KEY = 'generationRequest';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -72,7 +71,7 @@ export default function CreatePage() {
 
   // Load stored request data on mount
   useEffect(() => {
-    const storedRequest = sessionStorage.getItem(REQUEST_STORAGE_KEY);
+    const storedRequest = sessionStorage.getItem(STORAGE_KEYS.GENERATION_REQUEST);
     if (storedRequest) {
       try {
         const requestData: GenerationRequest = JSON.parse(storedRequest);
@@ -114,7 +113,7 @@ export default function CreatePage() {
           colorHints: data.colorHints || undefined,
         },
       };
-      sessionStorage.setItem(REQUEST_STORAGE_KEY, JSON.stringify(requestData));
+      sessionStorage.setItem(STORAGE_KEYS.GENERATION_REQUEST, JSON.stringify(requestData));
 
       const response = await fetch('/api/generate', {
         method: 'POST',
@@ -129,7 +128,7 @@ export default function CreatePage() {
 
       const result = await response.json();
       // Store result in sessionStorage for the results page
-      sessionStorage.setItem('generationResult', JSON.stringify(result));
+      sessionStorage.setItem(STORAGE_KEYS.GENERATION_RESULT, JSON.stringify(result));
       router.push('/results');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
@@ -164,7 +163,7 @@ export default function CreatePage() {
           style: data.style,
         },
       };
-      sessionStorage.setItem(REQUEST_STORAGE_KEY, JSON.stringify(requestData));
+      sessionStorage.setItem(STORAGE_KEYS.GENERATION_REQUEST, JSON.stringify(requestData));
 
       const response = await fetch('/api/generate', {
         method: 'POST',
@@ -178,7 +177,7 @@ export default function CreatePage() {
       }
 
       const result = await response.json();
-      sessionStorage.setItem('generationResult', JSON.stringify(result));
+      sessionStorage.setItem(STORAGE_KEYS.GENERATION_RESULT, JSON.stringify(result));
       router.push('/results');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');

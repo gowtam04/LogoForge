@@ -86,9 +86,7 @@ Generate the next question:`;
     };
 
     return NextResponse.json(responseData);
-  } catch (error) {
-    console.error('Interview API error:', error);
-
+  } catch {
     // Return a fallback question on error
     const body = await request.clone().json().catch(() => ({ currentStep: 0 }));
     const fallbackQuestion = getFallbackQuestion(body.currentStep || 0);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useLayoutEffect } from 'react';
 import {
   Box,
   TextField,
@@ -52,12 +52,18 @@ export default function TextInputForm({
     createInitialFormState(initialValues)
   );
 
-  // Reset form state when initialValues change by using key
-  const [prevKey, setPrevKey] = useState(formKey);
-  if (prevKey !== formKey) {
-    setPrevKey(formKey);
-    setFormState(createInitialFormState(initialValues));
-  }
+  // Track the previous key to detect changes
+  const prevKeyRef = useRef(formKey);
+
+  // Reset form state when initialValues change using useLayoutEffect to avoid flash
+  // This is a documented React pattern for derived state
+  useLayoutEffect(() => {
+    if (prevKeyRef.current !== formKey) {
+      prevKeyRef.current = formKey;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFormState(createInitialFormState(initialValues));
+    }
+  }, [formKey, initialValues]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -67,15 +67,6 @@ export interface ReferenceFormState {
   style: LogoStyle;
 }
 
-// Generation state for results page
-export interface GenerationState {
-  request: GenerationRequest;
-  response: GenerationResponse | null;
-  selectedLogoId: string | null;
-  isLoading: boolean;
-  error: string | null;
-}
-
 // Agent interview types
 export interface InterviewQuestion {
   question: string;

@@ -21,6 +21,7 @@ import {
   SkipNext as SkipIcon,
 } from '@mui/icons-material';
 import ConversationSummary from './agent/ConversationSummary';
+import { STORAGE_KEYS } from '@/lib/constants';
 import type {
   TextFormState,
   LogoStyle,
@@ -37,7 +38,6 @@ interface AgentInputFormProps {
 }
 
 const MAX_ANSWER_LENGTH = 200;
-const WIZARD_STORAGE_KEY = 'agentWizardState';
 
 interface WizardState {
   currentStep: number;
@@ -67,7 +67,7 @@ export default function AgentInputForm({
   const [wizardState, setWizardState] = useState<WizardState>(() => {
     // Try to restore from sessionStorage
     if (typeof window !== 'undefined') {
-      const stored = sessionStorage.getItem(WIZARD_STORAGE_KEY);
+      const stored = sessionStorage.getItem(STORAGE_KEYS.AGENT_WIZARD_STATE);
       if (stored) {
         try {
           return JSON.parse(stored);
@@ -96,7 +96,7 @@ export default function AgentInputForm({
   // Persist state to sessionStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem(WIZARD_STORAGE_KEY, JSON.stringify(wizardState));
+      sessionStorage.setItem(STORAGE_KEYS.AGENT_WIZARD_STATE, JSON.stringify(wizardState));
     }
   }, [wizardState]);
 
@@ -274,14 +274,14 @@ export default function AgentInputForm({
       };
 
       // Clear the wizard state
-      sessionStorage.removeItem(WIZARD_STORAGE_KEY);
+      sessionStorage.removeItem(STORAGE_KEYS.AGENT_WIZARD_STATE);
 
       onSubmit(formData);
     }
   };
 
   const handleStartOver = () => {
-    sessionStorage.removeItem(WIZARD_STORAGE_KEY);
+    sessionStorage.removeItem(STORAGE_KEYS.AGENT_WIZARD_STATE);
     setWizardState(initialWizardState);
     setCurrentAnswer('');
     setIsLastQuestion(false);
