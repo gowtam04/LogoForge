@@ -14,7 +14,7 @@ npm run lint     # Run ESLint
 
 LogoForge is an AI-powered logo generator that creates logos from text descriptions or reference images, then exports them as icon bundles for iOS, Android, and Web platforms.
 
-**Tech Stack:** Next.js 14 (App Router), TypeScript, Material UI, Google Generative AI (Gemini), Sharp for image processing.
+**Tech Stack:** Next.js 16 (App Router), TypeScript, Material UI, Google Generative AI (Gemini), Sharp for image processing.
 
 ## Architecture
 

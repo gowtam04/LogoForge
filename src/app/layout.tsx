@@ -18,6 +18,16 @@ export const metadata: Metadata = {
   title: "LogoForge - AI Logo Generator",
   description: "From idea to App Store-ready icons in under 5 minutes. Generate professional logos with AI and export ready-to-use icon bundles for iOS, Android, and Web.",
   keywords: ["logo generator", "AI logo", "app icons", "favicon generator", "iOS icons", "Android icons"],
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-48x48.png', sizes: '48x48', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
